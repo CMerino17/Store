@@ -5,7 +5,7 @@ import com.kreitek.store.domain.entity.Item;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = CategoryMapper.class)
 public interface ItemMapper extends EntityMapper<ItemDTO, Item> {
     @Override
     @Mapping(source = "categoryId", target = "category")
