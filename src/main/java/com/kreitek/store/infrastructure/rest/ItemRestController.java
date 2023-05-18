@@ -46,14 +46,14 @@ public class ItemRestController {
     }
 
     @CrossOrigin
-    @PostMapping(value = "/items", produces = "application/json", consumes = "application/json")
+    @PostMapping(value = "/items/", produces = "application/json", consumes = "application/json")
     ResponseEntity<ItemDTO> insertItem(@RequestBody ItemDTO itemDTO){
         ItemDTO itemSaved = this.itemService.saveItem(itemDTO);
         return new ResponseEntity<>(itemSaved, HttpStatus.CREATED);
     }
 
     @CrossOrigin
-    @PatchMapping(value = "/items", produces = "application/json", consumes = "application/json")
+    @PatchMapping(value = "/items/", produces = "application/json", consumes = "application/json")
     ResponseEntity<ItemDTO> updateItem(@RequestBody ItemDTO itemDTO){
         ItemDTO itemUpdated = this.itemService.saveItem(itemDTO);
         return new ResponseEntity<>(itemUpdated, HttpStatus.OK);

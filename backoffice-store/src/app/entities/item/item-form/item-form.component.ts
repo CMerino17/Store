@@ -3,6 +3,9 @@ import { UntypedFormArray } from '@angular/forms'
 import { ActivatedRoute } from '@angular/router'
 import { ItemService } from '../service/item.service'
 import { Item } from '../model/item.model'
+import { Category } from '../../category/model/category.model'
+import { CategoryService } from '../../category/service/category.service'
+import { throwError } from 'rxjs'
 
 @Component({
   selector: 'app-item-form',
@@ -13,9 +16,12 @@ export class ItemFormComponent implements OnInit{
   mode: "NEW" | "UPDATE" = "NEW";
   itemId?: number;
   item?: Item;
+  selectedCategory?: Category;
+  categories: Category[] = [];
 
   constructor(private route: ActivatedRoute,
-              private itemService: ItemService) { }
+              private itemService: ItemService,
+              private categoryService: CategoryService) { }
 
   ngOnInit(): void {
     const entryParam: string = this.route.snapshot.paramMap.get("itemId") ?? "new";
@@ -27,6 +33,20 @@ export class ItemFormComponent implements OnInit{
         this.mode = "NEW";
         this.initializeItem();
       }
+      
+  }
+
+  public getAllCategories(event?: any): void {
+    let categorySearch: string | undefined;
+    if (event?.query) {
+      categorySearch = event.query;
+    }
+    this.categoryService.getAllCategories(categorySearch).subscribe({
+      next: (categoriesFiltered) => {
+        this.categories = categoriesFiltered;
+      },
+      error: (err) => {this.handleError(err);}
+    })
   }
 
   public saveItem(): void {
@@ -38,6 +58,63 @@ export class ItemFormComponent implements OnInit{
       this.updateItem();
     }
   }
+
+  public categorySelected(): void {
+    this.item!.categoryId = this.selectedCategory!.id;
+    this.item!.categoryName = this.selectedCategory!.name;
+  }
+
+  public categoryUnselected(): void {
+    this.item!.categoryId = undefined;
+    this.item!.categoryName = undefined;
+  }
+
+  public includeImageInItem(event: any): void {
+    const inputFile = event.target as HTMLInputElement;
+    const file: File | null = inputFile.files?.item(0) ?? null;
+
+    this.readFileAsString(file!).then(
+      (result) => {
+        const imageType: string = this.getImageType(result);
+        console.log(imageType);
+        const imageBase64: string = this.getImageBase64(result);
+        console.log(imageBase64);
+
+        this.item!.image = imageBase64;
+      },
+      (error) => {
+        console.log("No se pudo cargar la imagen");
+      }
+    )
+  }
+
+  private getImageType(imageString: string): string {
+    const imageStringParts: string[] = imageString.split(",");
+    if (imageStringParts.length == 2) {
+      return imageStringParts[0];
+    } else {
+      return "";
+    }
+  }
+
+  private getImageBase64(imageString: string): string {
+    const imageStringParts: string[] = imageString.split(",");
+    if (imageStringParts.length == 2) {
+      return imageStringParts[1];
+    } else {
+      return "";
+    }
+  }
+
+  private readFileAsString(file: File) {
+    return new Promise<string>(function(resolve, reject){
+      let reader: FileReader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function() {
+        resolve(this.result as string);
+      }
+    })
+  }
   
   private insertItem(): void {
     this.itemService.insert(this.item!).subscribe({
@@ -45,7 +122,7 @@ export class ItemFormComponent implements OnInit{
         console.log("insertado correctamente");
         console.log(itemInserted);
       },
-      error: (err) => {this.handleError(err)}
+      error: (err) => {this.handleError(err);}
     })
   }
 
@@ -55,7 +132,7 @@ export class ItemFormComponent implements OnInit{
         console.log("modificado correctamente");
         console.log(itemUpdated);
       },
-      error: (err) => {this.handleError(err)}
+      error: (err) => {this.handleError(err);}
     })
   }
 
@@ -63,6 +140,7 @@ export class ItemFormComponent implements OnInit{
     this.itemService.getItemById(itemId).subscribe({
       next: (itemRequest) => {
         this.item = itemRequest;
+        this.selectedCategory = new Category(itemRequest.categoryId!, itemRequest.categoryName!);
       },
       error: (err) => {this.handleError(err)}
     })
