@@ -1,5 +1,6 @@
 .imgItem{
     width: 80px;
+    height: 80px;
 }
 table{
     width: 50%;
@@ -17,6 +18,8 @@ tr:nth-child(even){
     width: 25%;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 form{
     width: 50%;
